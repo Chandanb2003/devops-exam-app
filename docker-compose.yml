@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   flask:
     build: ./backend
@@ -16,8 +18,8 @@ services:
         condition: service_healthy
     volumes:
       - ./backend:/app
-      - ./frontend:/app/templates
-      - ./frontend/static:/app/static   # 👈 added for CSS/JS
+      - ./frontend:/app/templates      # HTML files
+      - ./frontend/static:/app/static  # CSS / JS / images
 
   mysql:
     image: mysql:5.7
@@ -30,7 +32,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./db/my.cnf:/etc/mysql/conf.d/my.cnf   # 👈 memory fix
+      # - ./db/my.cnf:/etc/mysql/conf.d/my.cnf   # only if you *actually* have this file
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-uroot", "-prootpass"]
       interval: 5s
