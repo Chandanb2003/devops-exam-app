@@ -3,13 +3,36 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "chandan669/devopsexamapp:latest"
+        SCANNER_HOME = tool 'sonar-scanner'
     }
 
     stages {
         stage('Git Checkout') {
             steps {
-                git url: 'https://github.com/KastroVKiran/devops-exam-app.git', 
+                git url: 'https://github.com/Chandanb2003/devops-exam-app.git', 
                     branch: 'master'
+            }
+        }
+
+        stage('File System Scan') {
+            steps {
+                sh "trivy fs --security-checks vuln,config --format table -o trivy-fs-report.html ."
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonar') {
+                    sh """
+                    ${SCANNER_HOME}/bin/sonar-scanner \
+                    -Dsonar.projectName=devops-exam-app \
+                    -Dsonar.projectKey=devops-exam-app \
+                    -Dsonar.sources=. \
+                    -Dsonar.language=py \
+                    -Dsonar.python.version=3 \
+                    -Dsonar.host.url=http://localhost:9000
+                    """
+                }
             }
         }
 
@@ -27,21 +50,22 @@ pipeline {
                     script {
                         withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
                             sh "docker build -t ${DOCKER_IMAGE} ."
+                            // Push the image to Docker Hub if needed
+                            sh "docker push ${DOCKER_IMAGE}"
                         }
                     }
                 }
             }
         }
 
-        // NEW STAGE: Push to Docker Hub
-        stage('Push to Docker Hub') {
+        // Added Docker Scout Image Analysis
+        stage('Docker Scout Image Analysis') {
             steps {
                 script {
                     withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
-                        sh """
-                        docker tag ${DOCKER_IMAGE} ${DOCKER_IMAGE}
-                        docker push ${DOCKER_IMAGE}
-                        """
+                        sh "docker-scout quickview ${DOCKER_IMAGE}"
+                        sh "docker-scout cves ${DOCKER_IMAGE}"
+                        sh "docker-scout recommendations ${DOCKER_IMAGE}"
                     }
                 }
             }
@@ -53,8 +77,8 @@ pipeline {
                 # Clean up any existing containers
                 docker compose down --remove-orphans || true
                 
-                # Start services (no --build needed since we pre-built the image)
-                docker compose up -d
+                # Start services with build
+                docker compose up -d --build
                 
                 # Wait for MySQL to be ready
                 echo "Waiting for MySQL to be ready..."
@@ -87,7 +111,7 @@ pipeline {
         success {
             echo '🚀 Deployment successful!'
             sh 'docker compose ps'
-            sh 'docker images | grep devopsexamapp'  // Verify image exists
+            archiveArtifacts artifacts: 'trivy-fs-report.html', allowEmptyArchive: true
         }
         failure {
             echo '❗ Pipeline failed. Check logs above.'
@@ -101,7 +125,7 @@ pipeline {
             echo "=== Final Logs ==="
             docker compose logs --tail=20 || true
             '''
+            archiveArtifacts artifacts: 'trivy-fs-report.html', allowEmptyArchive: true
         }
     }
 }
-
