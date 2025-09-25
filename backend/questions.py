@@ -48,5 +48,55 @@ questions = [
         "question": "What is the real purpose of coffee for developers?",
         "options": ["Hydration", "Keeping awake", "Boosting productivity", "Replacing sleep"],
         "answer": "Replacing sleep"
+    },
+    {
+        "question": "How do programmers usually fix a slow internet connection?",
+        "options": ["Call IT", "Restart Wi-Fi", "Turn off computer", "Wait and hope"],
+        "answer": "Wait and hope"
+    },
+    {
+        "question": "What is a DevOps engineer’s favorite type of music?",
+        "options": ["Rock", "Heavy Metal", "Automated Beats", "Code Loops"],
+        "answer": "Automated Beats"
+    },
+    {
+        "question": "When a server crashes at midnight, what is the first reaction?",
+        "options": ["Panic", "Cry", "Open Stack Overflow", "Restart it immediately"],
+        "answer": "Panic"
+    },
+    {
+        "question": "What do you call a programmer who doesn’t comment code?",
+        "options": ["Mystic", "Dangerous", "Optimistic", "Lazy"],
+        "answer": "Dangerous"
+    },
+    {
+        "question": "What is the official DevOps beverage?",
+        "options": ["Coffee", "Tea", "Red Bull", "Mountain Dew"],
+        "answer": "Coffee"
+    },
+    {
+        "question": "How do programmers fix ‘It works on my machine’?",
+        "options": ["Dockerize it", "Restart computer", "Ask a colleague", "Sacrifice a rubber duck"],
+        "answer": "Dockerize it"
+    },
+    {
+        "question": "Why do developers prefer tabs over spaces?",
+        "options": ["Because spaces are evil", "Tabs are faster", "Because they can", "To start arguments on Stack Overflow"],
+        "answer": "To start arguments on Stack Overflow"
+    },
+    {
+        "question": "What’s the best way to debug a mysterious bug?",
+        "options": ["Print statements everywhere", "Rubber duck debugging", "Console.log spam", "Throw laptop out the window"],
+        "answer": "Rubber duck debugging"
+    },
+    {
+        "question": "What is a programmer’s favorite exercise?",
+        "options": ["Running tests", "Jumping to conclusions", "Pull-ups from Git", "Code squats"],
+        "answer": "Running tests"
+    },
+    {
+        "question": "What is the most reliable source for programming help?",
+        "options": ["Stack Overflow", "Google", "Colleagues", "Old code comments"],
+        "answer": "Stack Overflow"
     }
 ]
