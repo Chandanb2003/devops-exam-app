@@ -2,6 +2,7 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
+# Install system deps for packages like reportlab
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libfreetype6-dev \
@@ -10,14 +11,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev \
  && rm -rf /var/lib/apt/lists/*
 
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app.py .
-COPY templates ./templates
-
-# Copy static only if it exists
-# (prevents build failure if static folder missing)
-COPY static ./static
+# Copy everything (app, templates, static, etc.)
+COPY . .
 
 CMD ["python", "app.py"]
