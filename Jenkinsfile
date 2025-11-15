@@ -6,6 +6,7 @@ pipeline {
     }
 
     stages {
+
         stage('Git Checkout') {
             steps {
                 git url: 'https://github.com/Chandanb2003/devops-exam-app.git', 
@@ -66,30 +67,27 @@ pipeline {
     }
 
     post {
+
         success {
-            node {
-                echo '🚀 Deployment successful!'
-                sh 'docker compose ps'
-                archiveArtifacts artifacts: 'trivy-fs-report.html', allowEmptyArchive: true
-            }
+            echo '🚀 Deployment successful!'
+            sh 'docker compose ps'
+            archiveArtifacts artifacts: 'trivy-fs-report.html', allowEmptyArchive: true
         }
+
         failure {
-            node {
-                echo '❗ Pipeline failed. Check logs above.'
-                sh '''
-                echo "=== Error Investigation ==="
-                docker compose logs --tail=50 || true
-                '''
-            }
+            echo '❗ Pipeline failed. Check logs above.'
+            sh '''
+            echo "=== Error Investigation ==="
+            docker compose logs --tail=50 || true
+            '''
         }
+
         always {
-            node {
-                sh '''
-                echo "=== Final Logs ==="
-                docker compose logs --tail=20 || true
-                '''
-                archiveArtifacts artifacts: 'trivy-fs-report.html', allowEmptyArchive: true
-            }
+            sh '''
+            echo "=== Final Logs ==="
+            docker compose logs --tail=20 || true
+            '''
+            archiveArtifacts artifacts: 'trivy-fs-report.html', allowEmptyArchive: true
         }
     }
 }
