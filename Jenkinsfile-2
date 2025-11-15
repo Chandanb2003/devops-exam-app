@@ -1,0 +1,95 @@
+pipeline {
+    agent any
+
+    environment {
+        APP_NAME       = "devopsexamapp"
+        DOCKER_IMAGE   = "chandan669/devopsexamapp:latest"
+        GCP_PROJECT    = "your-gcp-project-id"
+        GKE_CLUSTER    = "your-gke-cluster"
+        GKE_ZONE       = "us-central1-a"
+        SONAR_PROJECT  = "devopsexamapp"
+    }
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                echo "✔️ Pulling latest code..."
+                git branch: 'master', url: 'https://github.com/Chandanb2003/devops-exam-app.git'
+            }
+        }
+
+        stage('SonarQube Code Analysis') {
+            steps {
+                echo "✔️ Running SonarQube Scan..."
+                withSonarQubeEnv('sonar') {
+                    sh """
+                    sonar-scanner \
+                        -Dsonar.projectKey=${SONAR_PROJECT} \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=$SONAR_HOST_URL \
+                        -Dsonar.login=$SONAR_AUTH_TOKEN
+                    """
+                }
+            }
+        }
+
+        stage('Build & Push Docker Image') {
+            steps {
+                script {
+                    echo "✔️ Building Docker image..."
+                    sh "docker build -t ${DOCKER_IMAGE} ./backend"
+
+                    echo "✔️ Logging into DockerHub..."
+                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
+                        sh "docker push ${DOCKER_IMAGE}"
+                    }
+                }
+            }
+        }
+
+        stage('Trivy Scan') {
+            steps {
+                echo "✔️ Running Trivy security scan..."
+                sh """
+                trivy image --exit-code 0 --severity HIGH,CRITICAL ${DOCKER_IMAGE} > trivy-report.txt
+                """
+                archiveArtifacts artifacts: 'trivy-report.txt'
+            }
+        }
+
+        stage('Configure GKE Auth') {
+            steps {
+                echo "✔️ Authenticating to Google Cloud..."
+                sh """
+                gcloud auth activate-service-account --key-file=/var/lib/jenkins/gke.json
+                gcloud config set project ${GCP_PROJECT}
+                gcloud container clusters get-credentials ${GKE_CLUSTER} --zone ${GKE_ZONE}
+                """
+            }
+        }
+
+        stage('Deploy to GKE') {
+            steps {
+                echo "✔️ Deploying to Kubernetes..."
+
+                sh """
+                kubectl apply -f k8s/deployment.yaml
+                kubectl apply -f k8s/service.yaml
+                """
+
+                echo "⏳ Waiting for pods..."
+                sh "kubectl rollout status deployment/${APP_NAME}"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "🎉 Deployment Successful!"
+        }
+        failure {
+            echo "❌ Pipeline Failed — Check logs."
+        }
+    }
+}
