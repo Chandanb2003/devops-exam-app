@@ -14,13 +14,18 @@ pipeline {
             }
         }
 
-        #stage('File System Scan') {
+        // ---- FILE SYSTEM SCAN DISABLED ----
+        /*
+        stage('File System Scan') {
             steps {
                 sh "trivy fs --security-checks vuln,config --format table -o trivy-fs-report.html ."
             }
         }
+        */
 
-        #stage('SonarQube Analysis') {
+        // ---- SONARQUBE DISABLED ----
+        /*
+        stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonar') {
                     sh """
@@ -35,6 +40,7 @@ pipeline {
                 }
             }
         }
+        */
 
         stage('Verify Docker Compose') {
             steps {
@@ -50,7 +56,6 @@ pipeline {
                     script {
                         withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
                             sh "docker build -t ${DOCKER_IMAGE} ."
-                            // Push the image to Docker Hub if needed
                             sh "docker push ${DOCKER_IMAGE}"
                         }
                     }
@@ -58,8 +63,9 @@ pipeline {
             }
         }
 
-        // Added Docker Scout Image Analysis
-        #stage('Docker Scout Image Analysis') {
+        // ---- DOCKER SCOUT DISABLED ----
+        /*
+        stage('Docker Scout Image Analysis') {
             steps {
                 script {
                     withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
@@ -70,17 +76,14 @@ pipeline {
                 }
             }
         }
+        */
 
         stage('Deploy with Docker Compose') {
             steps {
                 sh '''
-                # Clean up any existing containers
                 docker compose down --remove-orphans || true
-                
-                # Start services with build
                 docker compose up -d --build
                 
-                # Wait for MySQL to be ready
                 echo "Waiting for MySQL to be ready..."
                 timeout 120s bash -c '
                 while ! docker compose exec -T mysql mysqladmin ping -uroot -prootpass --silent;
@@ -89,7 +92,6 @@ pipeline {
                     docker compose logs mysql --tail=5 || true;
                 done'
                 
-                # Additional wait for full initialization
                 sleep 10
                 '''
             }
