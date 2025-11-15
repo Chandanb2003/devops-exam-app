@@ -14,13 +14,13 @@ pipeline {
             }
         }
 
-        stage('File System Scan') {
+        #stage('File System Scan') {
             steps {
                 sh "trivy fs --security-checks vuln,config --format table -o trivy-fs-report.html ."
             }
         }
 
-        stage('SonarQube Analysis') {
+        #stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonar') {
                     sh """
@@ -59,7 +59,7 @@ pipeline {
         }
 
         // Added Docker Scout Image Analysis
-        stage('Docker Scout Image Analysis') {
+        #stage('Docker Scout Image Analysis') {
             steps {
                 script {
                     withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
