@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devopsexamapp
+  labels:
+    app: devopsexamapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: devopsexamapp
+  template:
+    metadata:
+      labels:
+        app: devopsexamapp
+    spec:
+      containers:
+        - name: devopsexamapp
+          image: chandan669/devopsexamapp:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: DB_HOST
+              value: "mysql-service"
+            - name: DB_USER
+              value: "root"
+            - name: DB_PASSWORD
+              value: "rootpass"
+            - name: DB_NAME
+              value: "devops_exam"
+
+          # basic health checks
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 20
